@@ -35,6 +35,7 @@ npm run dev    # Runs on http://localhost:3000, proxies /api to backend
 - **AI:** Use AI tools freely, but don't paste this entire README as a single prompt. We want to see how you break down problems and iterate with AI.
 - **Evaluation:** We're watching how efficiently you use AI tooling, how you prompt, and how you debug when things go wrong.
 - **Testing:** Vitest is pre-configured in both frontend and backend (`npm test`) if you want to write tests.
+- **Screenshots:** The images in `screenshots/` come from a working reference implementation of this exercise, grouped to match the parts below (`part-1/`, `part-2/`, `stretch/`). They're there to pin down *behaviour* — which fields exist, what the reason selector does, how selections are summarised. Don't try to match the visual design; we don't grade styling.
 
 ---
 
@@ -122,7 +123,7 @@ Some fields (like `order_items.unit_price`) point to arrays in the cart's order 
 
 ### Frontend
 
-Build a condition editor UI.
+Build a condition editor UI. See `screenshots/part-1/condition-builder.png` for the overall shape: a case containing condition rows, and a way to evaluate the result against a sample cart.
 
 #### Condition Rows
 
@@ -138,6 +139,8 @@ Users can add more condition rows. Each row is joined to the others by AND or OR
 #### Evaluate Button
 
 Add an "Evaluate" button. When clicked, it sends the current conditions to `POST /api/conditions/evaluate` along with one of the sample return carts from `GET /api/return-carts`. Display whether the cart matched or not. You can let the user pick which cart to test, or use a hardcoded one.
+
+See `screenshots/part-1/evaluate-result.png` for the reference implementation's version, including the request body it sends.
 
 ---
 
@@ -205,7 +208,7 @@ The **Reason** field evaluates against `return_items[].reason_id` in the cart. E
 
 ### Frontend — Nested Reason Selector
 
-When the user picks **"Reason"** as the field, the value input changes to a checkbox dropdown. This dropdown shows the reason tree from `GET /api/reasons`. See `screenshots/nested-reasons-all.png` and `screenshots/nested-reasons-some.png` for reference.
+When the user picks **"Reason"** as the field, the value input changes to a checkbox dropdown. This dropdown shows the reason tree from `GET /api/reasons`. See `screenshots/part-2/nested-reasons-all.png` and `screenshots/part-2/nested-reasons-some.png` for reference.
 
 **How it should work:**
 
@@ -229,8 +232,8 @@ If you have extra time, consider these extensions:
 
 ### Nested Condition Groups
 
-Within a single case, support sub-groups that have their own AND/OR logic. For example: `(email contains "@vip.com" OR total > 1000) AND country is "US"`. See `screenshots/nested-group.png` and `screenshots/condition-joining.png` for reference.
+Within a single case, support sub-groups that have their own AND/OR logic. For example: `(email contains "@vip.com" OR total > 1000) AND country is "US"`. See `screenshots/stretch/nested-group.png` and `screenshots/stretch/condition-joining.png` for reference.
 
 ### Multiple Cases
 
-Support a Case 1 / Case 2 / Else structure where each case has its own set of conditions and maps to a different resolution option. This mirrors the real application: Case 1 conditions → Return By Mail, Case 2 → Exchange, Else → Store Credit. See `screenshots/secondary-case.png` and `screenshots/condition-builder.png` for reference.
+Support a Case 1 / Case 2 / Else structure where each case has its own set of conditions and maps to a different resolution option. This mirrors the real application: Case 1 conditions → Return By Mail, Case 2 → Exchange, Else → Store Credit. See `screenshots/stretch/secondary-case.png` and `screenshots/part-1/condition-builder.png` for reference.
