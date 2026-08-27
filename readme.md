@@ -1,3 +1,5 @@
+# Please do not pull this repo. It's for reading and interpreting back to your agent.
+
 # Condition Editor
 
 In the real application, this is part of a **condition builder** that determines which resolution options (Return By Mail, Exchange, Store Credit, etc.) are available to a customer based on their **return cart** — an order combined with the customer's in-progress return selections. You're building a slice of that system: a UI for creating conditions and a backend for evaluating them against return carts.
