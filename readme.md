@@ -60,18 +60,18 @@ For this exercise, **conditions are evaluated against a return cart**. The retur
 
 Return the list of fields that can be used in conditions. Each field has a type and a set of valid operators.
 
-These fields map to properties inside the **return cart** payload (see `GET /api/return-carts` for the full structure). In Part 1, all of them come from the cart's embedded order info.
+Each field describes something about the **return cart** (see `GET /api/return-carts` for the full structure). Where each one lives in the payload, and how you identify it in a condition, is up to you.
 
-| Field | Type | Path in Order | Notes |
-|-------|------|---------------|-------|
-| Customer Email | string | `customer.email` | |
-| Order Total | number | `billing.amount` | |
-| Item Price | number | `order_items.unit_price` | Array field |
-| Carrier | string | `shipments.carrier` | Array field |
-| Country | string | `customer.address.country` | |
-| Is Final Sale | boolean | `order_items.is_final_sale` | Array field |
-| Is Gift | boolean | `order_items.is_gift` | Array field |
-| Item Color | string | `order_items.color` | Array field |
+| Field | Type |
+|-------|------|
+| Customer Email | string |
+| Order Total | number |
+| Item Price | number |
+| Carrier | string |
+| Country | string |
+| Is Final Sale | boolean |
+| Is Gift | boolean |
+| Item Color | string |
 
 Operators by type:
 - **string**: is, is not, contains, starts with, ends with
@@ -84,7 +84,7 @@ Already implemented. Returns the raw sample orders from `backend/src/data/orders
 
 #### `GET /api/return-carts`
 
-Already implemented. Returns sample return carts from `backend/src/data/return-carts.ts`. Each return cart combines order data with `return_items` — the items the customer is returning. These carts are the **evaluation target** for conditions. There are 4 carts covering different scenarios (high/low value, final sale items, bulk returns). You'll use the `reason_id` on each return line in Part 2 — ignore it for now.
+Already implemented. Returns sample return carts from `backend/src/data/return-carts.ts`. Each return cart combines order data with `return_items` — the items the customer is returning. These carts are the **evaluation target** for conditions. There are 5 carts covering different scenarios (high/low value, final sale items, bulk returns, partial returns). You'll use the `reason_id` on each return line in Part 2.
 
 #### `POST /api/conditions/evaluate`
 
@@ -97,12 +97,12 @@ Conditions can be nested using AND/OR groups. Here is an example request:
   "conditions": {
     "logic": "AND",
     "conditions": [
-      { "field": "customer.email", "operator": "CONTAINS", "value": "@example.com" },
+      { "field": "customer_email", "operator": "CONTAINS", "value": "@example.com" },
       {
         "logic": "OR",
         "conditions": [
-          { "field": "billing.amount", "operator": "GT", "value": 500 },
-          { "field": "order_items.unit_price", "operator": "GT", "value": 100 }
+          { "field": "order_total", "operator": "GT", "value": 500 },
+          { "field": "item_price", "operator": "GT", "value": 100 }
         ]
       }
     ]
@@ -113,15 +113,17 @@ Conditions can be nested using AND/OR groups. Here is an example request:
 
 Response: `{ "match": true }`
 
-Some fields (like `order_items.unit_price`) point to arrays in the cart's order info. For example, an order can have many items, each with its own price. You need to decide: does `order_items.unit_price GT 100` mean **"any item over $100"** or **"all items over $100"**? The choice is yours — be prepared to explain your reasoning.
+The `field` identifiers above are illustrative. How you identify a field on the wire is your call, as long as the frontend and backend agree.
+
+Some fields don't have a single value per cart. Item Price is the obvious one: an order has many items, each with its own price. You need to decide what `Item Price > 100` means — **"any item over $100"**, **"all items over $100"**, or something else — and which items it applies to. The choice is yours — be prepared to explain your reasoning.
 
 **Example rules your endpoint should handle:**
-- `customer.email CONTAINS @example.com` — email contains "@example.com"
-- `billing.amount GT 500` — order total is greater than 500
-- `order_items.unit_price GT 100` — item price over 100 (your semantics)
-- `shipments.carrier EQ fedex` — carrier is "fedex"
-- `order_items.is_final_sale EQ true` — final sale check (your semantics)
-- `customer.address.country NOT_EQ US` — country is not "US"
+- Customer Email **contains** `@example.com`
+- Order Total **>** `500`
+- Item Price **>** `100` (your semantics)
+- Carrier **is** `fedex`
+- Is Final Sale **is** `true` (your semantics)
+- Country **is not** `US`
 
 ### Frontend
 
@@ -197,9 +199,9 @@ Response shape:
 
 #### Add "Reason" to `GET /api/condition-fields`
 
-| Field | Type | Path in Order | Notes |
-|-------|------|---------------|-------|
-| Reason | special | `return_items[].reason_id` | One reason per return line only; values come from `/api/reasons` |
+| Field | Type | Notes |
+|-------|------|-------|
+| Reason | special | One reason per return line only; values come from `/api/reasons` |
 
 #### Extend `POST /api/conditions/evaluate`
 
