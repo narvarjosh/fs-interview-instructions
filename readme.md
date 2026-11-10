@@ -45,6 +45,19 @@ npm run dev    # Runs on http://localhost:3000, proxies /api to backend
 
 Build the API endpoints and the editor UI described below. Route stubs already exist in `backend/src/routes/`. The orders and return-carts endpoints already work — you implement the rest.
 
+### Cases and resolutions
+
+The editor is organized around **cases**. A **case** is a named group of conditions that maps to a single **resolution option** (Return By Mail, Exchange, Store Credit, …). Read a case as: *"IF these conditions match, THEN resolve to this option."* In the screenshots this is `Case 1 → Return By Mail`.
+
+Cases are ordered and evaluated top to bottom — the **first** case whose conditions match wins and determines the resolution. If no case matches, the cart falls through to **Else → Store Credit**: the always-present fallback rendered as the greyed-out, non-editable box at the bottom (`Everything else`). It has no conditions of its own — it's simply "what happens when nothing else matched," which is why it appears disabled. It isn't a case you build; it's the default outcome.
+
+**How cases relate to `POST /api/conditions/evaluate`:** the endpoint knows nothing about cases. It evaluates **one** condition group against one cart and returns `{ "match": boolean }`. Cases are a frontend concern layered on top of that single-group contract:
+
+- **In Part 1 you build one case (Case 1).** Clicking Evaluate sends that case's conditions to the endpoint. `match: true` → the UI shows `✓ Matched Case 1 → Return By Mail`; `match: false` → the cart falls through to `Else → Store Credit`. The greyed Else box and the `+ Add case` button are visible in the reference screenshots but don't need to do anything yet.
+- **Supporting more than one case is a stretch goal.** There, the UI makes one evaluate call per case in order and takes the first that returns `match: true` (see [Multiple Cases](#multiple-cases) and `screenshots/stretch/secondary-case.png`). The backend contract stays exactly the same — still one group per call.
+
+Focus Part 1 on getting a single case to evaluate correctly against a cart. The Else fallback and additional cases are UI wiring you can layer on later.
+
 ### How order data and return cart data fit together
 
 When a customer starts a return, there are two kinds of data:
@@ -125,7 +138,7 @@ Some fields (like `order_items.unit_price`) point to arrays in the cart's order 
 
 ### Frontend
 
-Build a condition editor UI. See `screenshots/part-1/condition-builder.png` for the overall shape: a case containing condition rows, and a way to evaluate the result against a sample cart.
+Build a condition editor UI. See `screenshots/part-1/condition-builder.png` for the overall shape: a single case (`Case 1 → Return By Mail`) containing condition rows, the greyed `Else → Store Credit` fallback beneath it, and a way to evaluate the result against a sample cart. See [Cases and resolutions](#cases-and-resolutions) above for what the case and Else boxes mean.
 
 #### Condition Rows
 
@@ -238,4 +251,4 @@ Within a single case, support sub-groups that have their own AND/OR logic. For e
 
 ### Multiple Cases
 
-Support a Case 1 / Case 2 / Else structure where each case has its own set of conditions and maps to a different resolution option. This mirrors the real application: Case 1 conditions → Return By Mail, Case 2 → Exchange, Else → Store Credit. See `screenshots/stretch/secondary-case.png` and `screenshots/part-1/condition-builder.png` for reference.
+Extend the single case from Part 1 into a Case 1 / Case 2 / … / Else structure where each case has its own conditions and maps to a different resolution option — for example Case 1 → Return By Mail, Case 2 → Exchange, Else → Store Credit. As described in [Cases and resolutions](#cases-and-resolutions), cases are evaluated in order and the first match wins, so the frontend makes one `POST /api/conditions/evaluate` call per case in order and stops at the first `match: true` (falling through to Else if none match). The backend endpoint is unchanged. See `screenshots/stretch/secondary-case.png` and `screenshots/part-1/condition-builder.png` for reference.
